@@ -48,8 +48,12 @@ public class MatchingEngine {
         books.put(stock.getSymbol(), new OrderBook(stock));
     }
 
-    public void addTradeListener(TradeListener listener) {
+    public synchronized void addTradeListener(TradeListener listener) {
         listeners.add(listener);
+    }
+
+    public synchronized void removeTradeListener(TradeListener listener) {
+        listeners.remove(listener);
     }
 
     // ---------------------------------------------------------------
@@ -260,6 +264,23 @@ public class MatchingEngine {
     /** Returns null if no stock has this symbol. */
     public OrderBook getOrderBook(String symbol) {
         return books.get(symbol);
+    }
+
+    /**
+     * The waiting orders for one stock and side, best first. Synchronized,
+     * so the GUI gets a safe copy even while another thread is trading.
+     */
+    public synchronized List<LimitOrder> getWaitingOrders(String symbol, OrderSide side) {
+        OrderBook book = books.get(symbol);
+        if (book == null) {
+            return new ArrayList<>();
+        }
+        return book.getOrders(side);
+    }
+
+    /** How many trades have happened since the program started. */
+    public synchronized int getTradeCount() {
+        return trades.size();
     }
 
     /** Every trade so far, oldest first. A copy, so callers cannot change history. */

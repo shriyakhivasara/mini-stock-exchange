@@ -14,7 +14,7 @@ the stock price moves with every trade.
 | 2 | Order book and matching engine | Done |
 | 3 | Custom exceptions and validation | Done |
 | 4 | Database (SQLite) and CSV export | Done |
-| 5 | Swing GUI | Not started |
+| 5 | Swing GUI | Done |
 | 6 | Bot trader and live refresh | Not started |
 | 7 | Integration and final README | Not started |
 

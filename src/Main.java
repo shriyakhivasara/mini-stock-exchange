@@ -1,125 +1,93 @@
-import java.util.List;
+import java.sql.SQLException;
 
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import data.DatabaseManager;
+import data.DatabaseTradeListener;
+import data.StockDAO;
+import data.TradeDAO;
+import data.UserDAO;
 import engine.MatchingEngine;
-import engine.OrderBook;
-import engine.TradeListener;
-import exceptions.ExchangeException;
-import model.HumanTrader;
-import model.LimitOrder;
-import model.MarketOrder;
-import model.Order;
-import model.OrderSide;
+import engine.PriceHistory;
+import gui.ExchangeServices;
+import gui.LoginFrame;
 import model.Stock;
-import model.Trade;
-import model.Trader;
 
 /**
- * Console demo of the matching engine (stages 2 and 3).
- *
- * It lists the four stocks, places a series of orders on one of them,
- * and prints what the engine does with each. This will be replaced by
- * the GUI start-up in a later stage.
+ * Program entry point. It builds every part of the application,
+ * connects the parts to each other, and opens the login window.
  */
 public class Main {
 
-    private static MatchingEngine engine;
-
     public static void main(String[] args) {
-        engine = new MatchingEngine();
-
-        // The four fictional stocks on our exchange.
-        Stock tech = new Stock("TECH", "TechNova Ltd", 100.00);
-        engine.addStock(tech);
-        engine.addStock(new Stock("GRNE", "GreenEnergy Corp", 50.00));
-        engine.addStock(new Stock("MEDI", "MediCare Labs", 200.00));
-        engine.addStock(new Stock("FOOD", "FoodBazaar Inc", 25.00));
-
-        // Print a line every time a trade happens (TradeListener interface).
-        engine.addTradeListener(new TradeListener() {
+        // All Swing work must happen on the GUI thread.
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void onTrade(Trade trade) {
-                System.out.println("    TRADE -> " + trade);
+            public void run() {
+                start();
             }
         });
-
-        Trader asha = new HumanTrader("Asha", "asha", "pass123", 10000.00);
-        Trader ravi = new HumanTrader("Ravi", "ravi", "pass456", 10000.00);
-        ravi.addShares("TECH", 50);
-
-        System.out.println("=== Listed stocks ===");
-        for (Stock stock : engine.getStocks()) {
-            System.out.println(stock);
-        }
-
-        System.out.println();
-        System.out.println("=== 1. Ravi offers shares at two prices; nothing trades yet ===");
-        place(new LimitOrder(ravi, tech, OrderSide.SELL, 10, 101.00));
-        place(new LimitOrder(ravi, tech, OrderSide.SELL, 10, 103.00));
-        printBook("TECH");
-
-        System.out.println();
-        System.out.println("=== 2. Asha bids 99: too low, so her order waits ===");
-        place(new LimitOrder(asha, tech, OrderSide.BUY, 5, 99.00));
-        printBook("TECH");
-
-        System.out.println();
-        System.out.println("=== 3. Asha bids 102 for 15: 10 trade at 101, 5 wait ===");
-        place(new LimitOrder(asha, tech, OrderSide.BUY, 15, 102.00));
-        printBook("TECH");
-
-        System.out.println();
-        System.out.println("=== 4. Ravi sells 8 at market: 5 go to the 102 bid, 3 to the 99 bid ===");
-        place(new MarketOrder(ravi, tech, OrderSide.SELL, 8));
-        printBook("TECH");
-
-        System.out.println();
-        System.out.println("=== 5. Orders the exchange refuses ===");
-        place(new LimitOrder(asha, tech, OrderSide.BUY, 0, 100.00));
-        place(new LimitOrder(asha, tech, OrderSide.BUY, 1000, 100.00));
-        place(new LimitOrder(asha, tech, OrderSide.SELL, 500, 100.00));
-        place(new MarketOrder(asha, engine.getStock("FOOD"), OrderSide.BUY, 5));
-
-        System.out.println();
-        System.out.println("=== Final state ===");
-        System.out.println(tech);
-        System.out.println(asha);
-        System.out.println(ravi);
-        System.out.println("Trades made: " + engine.getTrades().size());
     }
 
-    /** Send one order to the engine and report what happened. */
-    private static void place(Order order) {
-        System.out.println("  " + order);
+    private static void start() {
+        useNimbusLookAndFeel();
+
+        // 1. Database
+        final DatabaseManager database;
+        UserDAO userDAO;
+        StockDAO stockDAO;
+        TradeDAO tradeDAO;
+        MatchingEngine engine = new MatchingEngine();
+        PriceHistory priceHistory = new PriceHistory();
+
         try {
-            List<Trade> trades = engine.placeOrder(order);
-            if (trades.isEmpty()) {
-                System.out.println("    no match, order is waiting");
+            database = new DatabaseManager();
+            userDAO = new UserDAO(database);
+            stockDAO = new StockDAO(database);
+            tradeDAO = new TradeDAO(database);
+
+            // 2. Engine, with the stocks loaded from the database
+            for (Stock stock : stockDAO.loadAll()) {
+                engine.addStock(stock);
+                priceHistory.track(stock);
             }
-        } catch (ExchangeException e) {
-            // One catch handles every kind of rejection, because all our
-            // custom exceptions extend ExchangeException.
-            System.out.println("    REJECTED (" + e.getClass().getSimpleName() + "): " + e.getMessage());
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Could not open the database:\n" + e.getMessage(),
+                    "Mini Stock Exchange", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        // 3. Listeners: who gets told about each trade
+        engine.addTradeListener(new DatabaseTradeListener(userDAO, stockDAO, tradeDAO));
+        engine.addTradeListener(priceHistory);
+
+        // 4. Close the database cleanly when the program exits
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                database.close();
+            }
+        }));
+
+        // 5. Show the login window
+        ExchangeServices services = new ExchangeServices(engine, priceHistory, userDAO, tradeDAO);
+        new LoginFrame(services).setVisible(true);
     }
 
-    private static void printBook(String symbol) {
-        OrderBook book = engine.getOrderBook(symbol);
-        System.out.println("  Order book for " + symbol + ":");
-        System.out.println("    SELL side (lowest first):  " + describe(book.getOrders(OrderSide.SELL)));
-        System.out.println("    BUY side (highest first):  " + describe(book.getOrders(OrderSide.BUY)));
-    }
-
-    private static String describe(List<LimitOrder> orders) {
-        if (orders.isEmpty()) {
-            return "empty";
-        }
-        String text = "";
-        for (LimitOrder order : orders) {
-            if (!text.isEmpty()) {
-                text += ", ";
+    /** Nimbus is a modern-looking theme that ships with Java. */
+    private static void useNimbusLookAndFeel() {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                }
             }
-            text += order.getRemainingQuantity() + " @ " + String.format("%.2f", order.getLimitPrice());
+        } catch (Exception e) {
+            // If Nimbus is missing, Swing keeps its default theme.
+            System.err.println("Could not set the Nimbus theme: " + e.getMessage());
         }
-        return text;
     }
 }
