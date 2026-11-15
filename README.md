@@ -15,7 +15,7 @@ the stock price moves with every trade.
 | 3 | Custom exceptions and validation | Done |
 | 4 | Database (SQLite) and CSV export | Done |
 | 5 | Swing GUI | Done |
-| 6 | Bot trader and live refresh | Not started |
+| 6 | Bot trader and live refresh | Done |
 | 7 | Integration and final README | Not started |
 
 ## Folder structure

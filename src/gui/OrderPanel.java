@@ -151,6 +151,7 @@ public class OrderPanel extends JPanel {
             Order order;
             if (LIMIT.equals(typeBox.getSelectedItem())) {
                 double price = Double.parseDouble(priceField.getText().trim());
+                price = Math.round(price * 100.0) / 100.0;   // keep prices to 2 decimal places
                 order = new LimitOrder(trader, stock, side, quantity, price);
             } else {
                 order = new MarketOrder(trader, stock, side, quantity);

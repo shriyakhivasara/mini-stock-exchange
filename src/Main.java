@@ -4,6 +4,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import bot.BotTrader;
 import data.DatabaseManager;
 import data.DatabaseTradeListener;
 import data.StockDAO;
@@ -20,6 +21,9 @@ import model.Stock;
  * connects the parts to each other, and opens the login window.
  */
 public class Main {
+
+    // Each bot waits between 0.7 and 1.4 seconds between actions.
+    private static final int BOT_DELAY_MILLIS = 700;
 
     public static void main(String[] args) {
         // All Swing work must happen on the GUI thread.
@@ -64,17 +68,32 @@ public class Main {
         engine.addTradeListener(new DatabaseTradeListener(userDAO, stockDAO, tradeDAO));
         engine.addTradeListener(priceHistory);
 
-        // 4. Close the database cleanly when the program exits
+        // 4. Two bot traders, each running on its own thread
+        final BotTrader alpha = new BotTrader("Bot Alpha", engine, BOT_DELAY_MILLIS);
+        final BotTrader beta = new BotTrader("Bot Beta", engine, BOT_DELAY_MILLIS);
+        startOnNewThread(alpha);
+        startOnNewThread(beta);
+
+        // 5. Stop the bots and close the database when the program exits
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
+                alpha.stop();
+                beta.stop();
                 database.close();
             }
         }));
 
-        // 5. Show the login window
+        // 6. Show the login window
         ExchangeServices services = new ExchangeServices(engine, priceHistory, userDAO, tradeDAO);
         new LoginFrame(services).setVisible(true);
+    }
+
+    private static void startOnNewThread(BotTrader bot) {
+        Thread thread = new Thread(bot, bot.getName());
+        // A daemon thread does not keep the program alive after the windows close.
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /** Nimbus is a modern-looking theme that ships with Java. */

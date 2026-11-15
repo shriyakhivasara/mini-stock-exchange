@@ -7,8 +7,12 @@ import java.util.Map;
  * Anyone who can place orders on the exchange.
  *
  * This class is ABSTRACT: you cannot create a plain "Trader".
- * You create a HumanTrader (a logged-in user) or, later, a BotTrader.
+ * You create a HumanTrader (a logged-in user) or a BotTrader.
  * Both share the cash and holdings logic written here (inheritance).
+ *
+ * The cash and holdings methods are synchronized: a bot's trade can
+ * change a trader's account on the bot thread at the same moment the
+ * GUI thread is reading it to draw the portfolio.
  */
 public abstract class Trader {
 
@@ -39,28 +43,28 @@ public abstract class Trader {
         return name;
     }
 
-    public double getCash() {
+    public synchronized double getCash() {
         return cash;
     }
 
-    public void addCash(double amount) {
+    public synchronized void addCash(double amount) {
         cash += amount;
     }
 
-    public void deductCash(double amount) {
+    public synchronized void deductCash(double amount) {
         cash -= amount;
     }
 
     /** Returns 0 if the trader owns none of this stock. */
-    public int getSharesOf(String symbol) {
+    public synchronized int getSharesOf(String symbol) {
         return holdings.getOrDefault(symbol, 0);
     }
 
-    public void addShares(String symbol, int quantity) {
+    public synchronized void addShares(String symbol, int quantity) {
         holdings.put(symbol, getSharesOf(symbol) + quantity);
     }
 
-    public void removeShares(String symbol, int quantity) {
+    public synchronized void removeShares(String symbol, int quantity) {
         int remaining = getSharesOf(symbol) - quantity;
         if (remaining == 0) {
             holdings.remove(symbol);
@@ -70,14 +74,14 @@ public abstract class Trader {
     }
 
     /** A copy, so code outside this class cannot change holdings directly. */
-    public Map<String, Integer> getHoldings() {
+    public synchronized Map<String, Integer> getHoldings() {
         return new HashMap<>(holdings);
     }
 
     @Override
     public String toString() {
         return getTraderType() + " #" + id + " " + name
-                + " | cash " + String.format("%.2f", cash)
-                + " | holdings " + holdings;
+                + " | cash " + String.format("%.2f", getCash())
+                + " | holdings " + getHoldings();
     }
 }
