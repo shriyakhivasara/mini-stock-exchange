@@ -13,3 +13,6 @@ data/*.csv
 # OS files
 .DS_Store
 Thumbs.db
+
+# Temporary file made by the Windows scripts
+sources.txt

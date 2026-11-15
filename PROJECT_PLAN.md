@@ -28,16 +28,19 @@ sellers; each match is a trade; the last trade price is the stock price.
 
 - 4 fictional stocks.
 - Limit and market orders only.
-- One random bot trader on a single background thread.
-- Swing GUI: login, order form, live order book table, price chart, portfolio.
+- Two instances of one bot trader class, each on its own background thread.
+- Swing GUI: login, market list, order form, live order book tables, price chart,
+  portfolio, recent trades.
 - SQLite via JDBC for accounts, holdings and trades.
 - CSV export of trade history.
 
 ## Languages and libraries
 
 - Java (JDK 17 or newer) for everything, with a few SQL statements inside the data code.
-- Libraries, as jars in `lib/`: SQLite JDBC driver, JFreeChart, FlatLaf.
-- No build tool. Compile with `javac` or run from IntelliJ IDEA.
+- One library, as a jar in `lib/`: the SQLite JDBC driver.
+- The price chart is drawn by hand with `Graphics2D`, and the theme is Nimbus,
+  which ships with Java, so no chart or theme library is needed.
+- No build tool. Use the run scripts, `javac`, or IntelliJ IDEA.
 
 ## Where each OOP concept appears
 
@@ -45,13 +48,13 @@ sellers; each match is a trade; the last trade price is the stock price.
 |---|---|
 | Inheritance, abstract classes | `Order` -> `LimitOrder`, `MarketOrder`; `Trader` -> `HumanTrader`, `BotTrader` |
 | Polymorphism | `Order.acceptsPrice()`, `Trader.getTraderType()` |
-| Interfaces | `TradeListener` (engine tells the GUI a trade happened) |
+| Interfaces | `TradeListener` (engine tells the GUI, database and chart about trades), `StockSelectionListener`, `Runnable` |
 | Exception handling | `InsufficientFundsException`, `InsufficientSharesException`, `InvalidOrderException` |
 | Collections | `PriorityQueue` order book, `HashMap` holdings |
-| Multithreading | `BotTrader` |
+| Multithreading | `BotTrader` threads, `synchronized` methods, `SwingUtilities.invokeLater` |
 | File handling | CSV export |
 | Database | SQLite via JDBC |
-| GUI | Swing |
+| GUI | Swing, including custom painting for the chart |
 
 ## Stages
 
@@ -61,13 +64,16 @@ sellers; each match is a trade; the last trade price is the stock price.
 4. Database and CSV export
 5. GUI screens
 6. Bot trader and live refresh
-7. Integration and final README
+7. Integration, run scripts and documentation
+
+All seven stages are complete. What remains is the report, the diagrams, the
+screenshots and viva preparation.
 
 ## Module owners
 
 - **Engine** (`model`, `engine`, `exceptions`): Shriya
 - **GUI** (`gui`): to be assigned
-- **Data and bot** (`data`, `BotTrader`), report lead: to be assigned
+- **Data and bot** (`data`, `bot`), report lead: to be assigned
 
 ## Timeline
 
