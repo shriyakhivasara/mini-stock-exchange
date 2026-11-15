@@ -3,16 +3,24 @@
 A paper-trading stock exchange simulator written in Java for the Object Oriented
 Programming course project (BITS Pilani, Dubai Campus).
 
-Users log in, place buy and sell orders on four fictional stocks, and trade
+Users log in, place buy and sell orders on ten well-known companies, and trade
 against two bot traders. A matching engine pairs buyers with sellers, and each
 stock's price is simply the price of its latest trade.
 
+The company names are real, but everything else is simulated. Starting prices are
+round numbers in the region of real share prices; after that, prices move only
+through trades made inside this program. No real market data is used.
+
 ## Features
 
+- Ten listed companies: Apple, Microsoft, Alphabet, Amazon, Tesla, Nvidia, Meta,
+  Netflix, JPMorgan Chase and Disney
 - Limit and market orders, matched by price-time priority
 - Two bot traders on their own threads that keep prices moving
 - Swing GUI: login, market list, live price chart, order book, order form,
-  portfolio and recent trades
+  portfolio, and tabs for your own trades and all market trades
+- "My trades and profit": every trade you made, plus per company the average buy
+  price, average sell price, profit and profit margin
 - Accounts, holdings, prices and every trade saved in a SQLite database
 - Trade history export to CSV
 - Custom exceptions for invalid orders, insufficient cash and insufficient shares
@@ -27,7 +35,7 @@ You need JDK 17 or newer. Nothing else has to be installed.
 | macOS / Linux | `./run.sh` | `./run-tests.sh` |
 
 On first run, click **Create account** on the login window. A new account starts
-with 10,000 in cash.
+with 100,000 in cash.
 
 ### Running from IntelliJ IDEA
 
@@ -60,7 +68,7 @@ docs/            class guide, and space for the report, diagrams and screenshots
 | Test | What it checks | Checks |
 |---|---|---|
 | `test.EngineTest` | matching rules and every exception | 40 |
-| `test.DataTest` | database save and load, CSV export | 17 |
+| `test.DataTest` | database save and load, CSV export, profit calculation | 31 |
 | `test.BotTest` | two bots on threads: cash and shares are conserved | 9 |
 
 `test.ConsoleDemo` prints a step-by-step walkthrough of the matching engine
@@ -77,6 +85,7 @@ without the GUI: `java -cp out test.ConsoleDemo`.
 | 5 | Swing GUI | Done |
 | 6 | Bot trader and live refresh | Done |
 | 7 | Integration, run scripts and documentation | Done |
+| 8 | Ten real companies, and the "My trades and profit" tab | Done |
 
 ## Team
 

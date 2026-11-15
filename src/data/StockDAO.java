@@ -23,14 +23,25 @@ public class StockDAO {
 
     /**
      * Load every stock. The first time the program runs the table is
-     * empty, so the four default stocks are inserted first.
+     * empty, so the ten default stocks are inserted first.
+     *
+     * The company names are real, but everything else is simulated: the
+     * starting prices are round numbers in the region of real share
+     * prices, and after that each price moves only through trades made
+     * inside this program.
      */
     public List<Stock> loadAll() throws SQLException {
         if (isEmpty()) {
-            insert(new Stock("TECH", "TechNova Ltd", 100.00));
-            insert(new Stock("GRNE", "GreenEnergy Corp", 50.00));
-            insert(new Stock("MEDI", "MediCare Labs", 200.00));
-            insert(new Stock("FOOD", "FoodBazaar Inc", 25.00));
+            insert(new Stock("AAPL", "Apple", 340.00));
+            insert(new Stock("MSFT", "Microsoft", 530.00));
+            insert(new Stock("GOOGL", "Alphabet (Google)", 320.00));
+            insert(new Stock("AMZN", "Amazon", 225.00));
+            insert(new Stock("TSLA", "Tesla", 400.00));
+            insert(new Stock("NVDA", "Nvidia", 215.00));
+            insert(new Stock("META", "Meta", 650.00));
+            insert(new Stock("NFLX", "Netflix", 100.00));
+            insert(new Stock("JPM", "JPMorgan Chase", 335.00));
+            insert(new Stock("DIS", "Disney", 110.00));
         }
 
         List<Stock> stocks = new ArrayList<>();

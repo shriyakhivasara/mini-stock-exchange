@@ -26,11 +26,12 @@ sellers; each match is a trade; the last trade price is the stock price.
 
 ## Scope (fixed, do not add to it)
 
-- 4 fictional stocks.
+- 10 stocks named after real companies. Prices and trades are simulated; no real
+  market data is used.
 - Limit and market orders only.
 - Two instances of one bot trader class, each on its own background thread.
 - Swing GUI: login, market list, order form, live order book tables, price chart,
-  portfolio, recent trades.
+  portfolio, the user's own trades with profit per company, and all market trades.
 - SQLite via JDBC for accounts, holdings and trades.
 - CSV export of trade history.
 
@@ -65,8 +66,9 @@ sellers; each match is a trade; the last trade price is the stock price.
 5. GUI screens
 6. Bot trader and live refresh
 7. Integration, run scripts and documentation
+8. Ten real companies, and the "My trades and profit" tab (added on request after stage 7)
 
-All seven stages are complete. What remains is the report, the diagrams, the
+All stages are complete. What remains is the report, the diagrams, the
 screenshots and viva preparation.
 
 ## Module owners

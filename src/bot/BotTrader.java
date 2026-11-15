@@ -26,7 +26,7 @@ import model.Trader;
  */
 public class BotTrader extends Trader implements Runnable {
 
-    private static final double STARTING_CASH = 1000000.00;
+    private static final double STARTING_CASH = 10000000.00;
     private static final int STARTING_SHARES = 10000;
 
     private static final int ORDERS_PER_SIDE = 3;       // waiting orders to keep near the price

@@ -16,7 +16,7 @@ import model.HumanTrader;
  */
 public class ExchangeServices {
 
-    public static final double STARTING_CASH = 10000.00;
+    public static final double STARTING_CASH = 100000.00;
 
     private final MatchingEngine engine;
     private final PriceHistory priceHistory;

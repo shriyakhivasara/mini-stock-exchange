@@ -3,6 +3,7 @@ package data;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -20,6 +21,10 @@ public class DatabaseManager {
 
     public static final String DEFAULT_FILE = "data/exchange.db";
 
+    // Increase this number whenever the tables or the default stocks change.
+    // A database file made by an older version is then cleared and rebuilt.
+    private static final int SCHEMA_VERSION = 2;
+
     private final Connection connection;
 
     /** Open the normal database file used by the application. */
@@ -35,7 +40,31 @@ public class DatabaseManager {
             folder.mkdirs();
         }
         connection = DriverManager.getConnection("jdbc:sqlite:" + filePath);
+        resetIfOutOfDate();
         createTables();
+    }
+
+    /**
+     * SQLite keeps one spare number in every database file, called
+     * user_version. We store our SCHEMA_VERSION there. If the file holds
+     * a different number, its tables no longer match this program, so
+     * they are dropped and createTables() builds them again, empty.
+     */
+    private void resetIfOutOfDate() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            int storedVersion;
+            try (ResultSet result = statement.executeQuery("PRAGMA user_version")) {
+                result.next();
+                storedVersion = result.getInt(1);
+            }
+            if (storedVersion != SCHEMA_VERSION) {
+                statement.executeUpdate("DROP TABLE IF EXISTS users");
+                statement.executeUpdate("DROP TABLE IF EXISTS holdings");
+                statement.executeUpdate("DROP TABLE IF EXISTS stocks");
+                statement.executeUpdate("DROP TABLE IF EXISTS trades");
+                statement.executeUpdate("PRAGMA user_version = " + SCHEMA_VERSION);
+            }
+        }
     }
 
     /** "IF NOT EXISTS" makes this safe to run every time the program starts. */
@@ -68,6 +97,8 @@ public class DatabaseManager {
                     + " symbol   TEXT NOT NULL,"
                     + " buyer    TEXT NOT NULL,"
                     + " seller   TEXT NOT NULL,"
+                    + " buyer_username  TEXT NOT NULL,"
+                    + " seller_username TEXT NOT NULL,"
                     + " quantity INTEGER NOT NULL,"
                     + " price    REAL NOT NULL)");
         }

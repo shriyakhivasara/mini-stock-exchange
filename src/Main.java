@@ -22,8 +22,8 @@ import model.Stock;
  */
 public class Main {
 
-    // Each bot waits between 0.7 and 1.4 seconds between actions.
-    private static final int BOT_DELAY_MILLIS = 700;
+    // Each bot waits between 0.4 and 0.8 seconds between actions.
+    private static final int BOT_DELAY_MILLIS = 400;
 
     public static void main(String[] args) {
         // All Swing work must happen on the GUI thread.

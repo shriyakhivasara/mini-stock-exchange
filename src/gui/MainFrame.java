@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -29,7 +30,7 @@ import model.Trade;
  *   WEST   - market list
  *   CENTER - price chart above the order book
  *   EAST   - order form above the portfolio
- *   SOUTH  - recent trades
+ *   SOUTH  - two tabs: the user's own trades and profit, and all market trades
  *
  * It implements two interfaces:
  *   - TradeListener: the engine tells it when a trade happens
@@ -46,6 +47,7 @@ public class MainFrame extends JFrame implements TradeListener, StockSelectionLi
     private final OrderPanel orderPanel;
     private final PortfolioPanel portfolioPanel;
     private final TradeHistoryPanel historyPanel;
+    private final MyTradesPanel myTradesPanel;
 
     private final Timer refreshTimer;
     private Stock selectedStock;
@@ -62,6 +64,7 @@ public class MainFrame extends JFrame implements TradeListener, StockSelectionLi
         orderPanel = new OrderPanel(engine, trader, this);
         portfolioPanel = new PortfolioPanel(engine, trader);
         historyPanel = new TradeHistoryPanel(services.getTradeDAO());
+        myTradesPanel = new MyTradesPanel(services.getTradeDAO(), trader);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -69,12 +72,11 @@ public class MainFrame extends JFrame implements TradeListener, StockSelectionLi
         add(marketPanel, BorderLayout.WEST);
         add(buildCentre(), BorderLayout.CENTER);
         add(buildRightSide(), BorderLayout.EAST);
-        add(historyPanel, BorderLayout.SOUTH);
+        add(buildBottomTabs(), BorderLayout.SOUTH);
 
         marketPanel.setPreferredSize(new Dimension(310, 0));
-        historyPanel.setPreferredSize(new Dimension(0, 200));
 
-        setSize(1280, 800);
+        setSize(1280, 820);
         setMinimumSize(new Dimension(1100, 700));
         setLocationRelativeTo(null);
 
@@ -124,13 +126,22 @@ public class MainFrame extends JFrame implements TradeListener, StockSelectionLi
     }
 
     private JPanel buildCentre() {
-        orderBookPanel.setPreferredSize(new Dimension(0, 230));
+        orderBookPanel.setPreferredSize(new Dimension(0, 205));
 
         JPanel centre = new JPanel(new BorderLayout(0, 10));
         centre.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         centre.add(chartPanel, BorderLayout.CENTER);
         centre.add(orderBookPanel, BorderLayout.SOUTH);
         return centre;
+    }
+
+    /** Two tabs sharing the bottom of the window. */
+    private JTabbedPane buildBottomTabs() {
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("My trades and profit", myTradesPanel);
+        tabs.addTab("All market trades", historyPanel);
+        tabs.setPreferredSize(new Dimension(0, 235));
+        return tabs;
     }
 
     private JPanel buildRightSide() {
@@ -159,6 +170,7 @@ public class MainFrame extends JFrame implements TradeListener, StockSelectionLi
         int tradeCount = engine.getTradeCount();
         if (tradeCount != tradesShown) {
             historyPanel.refresh();
+            myTradesPanel.refresh();
             tradesShown = tradeCount;
         }
     }

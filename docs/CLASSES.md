@@ -39,11 +39,13 @@ of the report.
 
 | Class | Purpose | Concept |
 |---|---|---|
-| `DatabaseManager` | Opens the SQLite file and creates the tables | JDBC connection |
+| `DatabaseManager` | Opens the SQLite file, creates the tables, rebuilds an out-of-date file | JDBC connection |
 | `UserDAO` | Register, log in, save accounts | `PreparedStatement`, `ResultSet` |
-| `StockDAO` | Load stocks and save prices | JDBC |
-| `TradeDAO` | Save trades and read history | JDBC |
+| `StockDAO` | Load the ten stocks and save prices | JDBC |
+| `TradeDAO` | Save trades; read market history or one user's history | JDBC, SQL `WHERE` |
 | `TradeRecord` | One saved row of the trades table | Plain data class |
+| `StockProfit` | One user's buying, selling and profit in one stock | Encapsulated calculation |
+| `ProfitCalculator` | Builds a `StockProfit` per company from a user's trades | `LinkedHashMap` |
 | `CsvExporter` | Writes trade history to a CSV file | File handling, try-with-resources |
 | `DatabaseTradeListener` | Saves each trade as it happens | Implements an interface |
 
@@ -58,13 +60,15 @@ of the report.
 | Class | Purpose | Concept |
 |---|---|---|
 | `LoginFrame` | Log in or create an account | `JFrame`, `ActionListener` |
-| `MainFrame` | Main window; arranges and refreshes the panels | `BorderLayout`, implements two interfaces, `invokeLater` |
+| `MainFrame` | Main window; arranges and refreshes the panels | `BorderLayout`, `JTabbedPane`, implements two interfaces, `invokeLater` |
 | `MarketPanel` | List of stocks with price and change | `JTable`, selection listener |
 | `PriceChartPanel` | Line chart of recent prices | Custom painting with `Graphics2D` |
 | `OrderBookPanel` | Buy and sell orders for the selected stock | `JTable` |
 | `OrderPanel` | Form for placing an order | Event handling, `try`/`catch` |
 | `PortfolioPanel` | Cash, holdings and total worth | `JTable` |
-| `TradeHistoryPanel` | Recent trades and the CSV export button | `JFileChooser`, exception handling |
+| `TradeHistoryPanel` | All recent market trades and the CSV export button | `JFileChooser`, exception handling |
+| `MyTradesPanel` | The user's own trades and profit per company | `JTable`, uses `ProfitCalculator` |
+| `SignColourRenderer` | Colours gains green and losses red in tables | Extending a library class |
 | `StockSelectionListener` | "Tell me which stock was clicked" | Interface |
 | `ReadOnlyTableModel` | Table model with editing switched off | Extending a library class |
 | `ExchangeServices` | Bundle of shared objects passed to each screen | Composition |
@@ -75,7 +79,7 @@ of the report.
 | Class | Purpose |
 |---|---|
 | `EngineTest` | 40 checks of the matching rules and exceptions |
-| `DataTest` | 17 checks of the database and CSV code |
+| `DataTest` | 31 checks of the database, CSV and profit code |
 | `BotTest` | 9 checks that two bots on threads keep the exchange consistent |
 | `ConsoleDemo` | Step-by-step console walkthrough of the engine |
 
