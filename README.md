@@ -11,8 +11,8 @@ the stock price moves with every trade.
 | Stage | What | State |
 |---|---|---|
 | 1 | Project skeleton and model classes | Done |
-| 2 | Order book and matching engine | Not started |
-| 3 | Custom exceptions and validation | Not started |
+| 2 | Order book and matching engine | Done |
+| 3 | Custom exceptions and validation | Done |
 | 4 | Database (SQLite) and CSV export | Not started |
 | 5 | Swing GUI | Not started |
 | 6 | Bot trader and live refresh | Not started |
@@ -23,10 +23,11 @@ the stock price moves with every trade.
 ```
 src/
   model/       Order, LimitOrder, MarketOrder, Stock, Trade, Trader, HumanTrader
-  engine/      order book and matching engine (stage 2)
-  exceptions/  custom exceptions (stage 3)
+  engine/      OrderBook, MatchingEngine, TradeListener
+  exceptions/  ExchangeException and its three subclasses
   data/        database and CSV code (stage 4)
   gui/         Swing screens (stage 5)
+  test/        EngineTest, which checks the matching rules
   Main.java    program entry point
 lib/           library jars (added in later stages)
 data/          database file and exported CSVs
@@ -53,7 +54,19 @@ java -cp out Main
 
 In IntelliJ IDEA: open the folder, mark `src` as the Sources Root, and run `Main`.
 
-At stage 1, `Main` prints a short demo of the model classes.
+For now, `Main` runs a console demo: it places a series of orders and prints
+the order book, the trades and the rejected orders.
+
+## How to test
+
+After compiling, run the engine checks:
+
+```
+java -cp out test.EngineTest
+```
+
+It prints PASS or FAIL for each rule (price priority, time priority, partial
+fills, market orders, and every exception) and a total at the end.
 
 ## Team
 

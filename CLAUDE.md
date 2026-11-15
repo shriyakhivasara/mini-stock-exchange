@@ -14,7 +14,7 @@ Read `PROJECT_PLAN.md` before making changes; it holds the scope, stages and tim
 - Do not add features outside the fixed scope in `PROJECT_PLAN.md`.
 - Work one stage at a time and update the status table in `README.md`.
 - After each change, compile and run:
-  `javac -d out $(find src -name "*.java") && java -cp out Main`
+  `javac -d out $(find src -name "*.java") && java -cp out test.EngineTest && java -cp out Main`
 
 ## Layout
 
@@ -23,3 +23,4 @@ Read `PROJECT_PLAN.md` before making changes; it holds the scope, stages and tim
 - `src/exceptions` custom exceptions
 - `src/data` JDBC and CSV
 - `src/gui` Swing screens
+- `src/test` plain-Java checks, run with `java -cp out test.EngineTest`
